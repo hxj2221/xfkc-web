@@ -88,7 +88,7 @@ export default {
     },
     toDetail(item) {
       if (item.videoType === 1) {
-        this.$router.push({ path: `/lesson/lessondetail?id=${item.id}&type=1` })
+        this.$router.push({ path: `/excellentCourse/excellentCourse?id=${item.id}&type=1&showType='detail'` })
       } else {
         this.$router.push({ path: `/coursesource/index?id=${item.id}` })
       }

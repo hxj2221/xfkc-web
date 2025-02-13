@@ -1,6 +1,6 @@
 <template>
   <div class="lesson-main">
-    <crumbs />
+    <crumbs  />
     <div v-if="courseType === 1" class="box">
       <div class="top">
         <!-- <div class="one">
@@ -19,7 +19,7 @@
             <span class="zhanwei">级</span>
           </div>
           <div>
-            <el-radio-group v-model="radio4" @change="getList">
+            <el-radio-group v-model="radio4" @change="changeRadioClass">
               <el-radio-button label="全部" />
               <el-radio-button v-for="item in gradeList" :key="item.id" :label="item.id">{{ item.detail }}</el-radio-button>
             </el-radio-group>
@@ -28,7 +28,7 @@
         <div class="three">
           <div class="name_2">版<span class="zhanwei">块</span></div>
           <div>
-            <el-radio-group v-model="radio5" @change="getList">
+            <el-radio-group v-model="radio5" @change="changeRadioClass">
               <el-radio-button label="全部" />
               <el-radio-button v-for="item in lessonType" :key="item.id" :label="item.id">{{ item.detail }}</el-radio-button>
             </el-radio-group>
@@ -37,7 +37,7 @@
         <div class="three" style="top: 36px">
           <div class="name_2">课程类目</div>
           <div>
-            <el-radio-group v-model="radioClass" @change="getList">
+            <el-radio-group v-model="radioClass" @change="changeRadioClass">
               <el-radio-button label="全部" />
               <el-radio-button v-for="item in classList" :key="item.id" :label="item.id">{{ item.detail }}</el-radio-button>
             </el-radio-group>
@@ -64,47 +64,61 @@
           </div>
         </div>
       </div> -->
-      <el-row :gutter="66">
-        <el-col v-for="item in lessonList" :key="item.id" :span="6">
-          <div class="box_01" @click="changeUrl(item.id)">
-            <!-- <img class="imgg" :src="item.coverImage" alt> -->
+        <div  class="flex justify-center space-around" v-if="!showType">
+          <div class="model_box_01" v-for="item in classModelList" :key="item.id" @click="changeType(item)">
             <el-image
-              style="width: 290px;height: 160px;"
-              :src="$comm.url(item.coverImage)"
-              fit="cover"
+              class="model_img"
+              :src="item.coverImage"
             />
-            <!-- <img class="imgg" :src="baseApi + '/file/' + item.coverImage" alt=""> -->
-
-            <div class="bottom_1">
-              <!-- <el-image v-if="courseType === 1" class="children" :src="require('../../assets/lesson/excellentCourses.png')" alt="" />
-              <div v-else class="children" style="height: 58px;" /> -->
-              <div class="children" style="height: 58px;" />
-              <div class="title">{{ item.name }}</div>
-              <div v-if="userName !== 'admin445' && userName !== 'admin310'" class="txt">
-                <el-image :src="require('../../assets/lesson/icon.png')" alt="" />
-                <div class="schoolName">{{ item.schoolName }}</div>
-                <div class="teacherName">{{ item.authorName }}</div>
-              </div>
-              <!-- <img class="con" src="../../assets/lesson/dian.png" alt=""> -->
-            </div>
+            <div class="title">{{ item.name }}</div>
           </div>
-        </el-col>
-      </el-row>
-    </div>
-    <div class="myTwo">
-      <div class="block">
-        <el-pagination
-          :current-page.sync="currentPage"
-          :page-size="pageSize"
-          :prev-text="'上一页'"
-          :next-text="'下一页'"
-          layout="slot,prev, pager, next, jumper"
-          :total="total"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
+        </div>
+      <div>
+
       </div>
+      <InsideList  ref="InsideList" :params="params"  v-if="showType==='list'" :type="listType" @changeShowType="changeShowType"  />
+      <LessDetail v-else-if="showType==='detail'" :id="detailId"  ref="LessDetail" @changeShowType="changeShowType" />
+<!--      <el-row :gutter="66">-->
+<!--        <el-col v-for="item in lessonList" :key="item.id" :span="6">-->
+<!--          <div class="box_01" @click="changeUrl(item.id)">-->
+<!--            &lt;!&ndash; <img class="imgg" :src="item.coverImage" alt> &ndash;&gt;-->
+<!--            <el-image-->
+<!--              style="width: 290px;height: 160px;"-->
+<!--              :src="$comm.url(item.coverImage)"-->
+<!--              fit="cover"-->
+<!--            />-->
+<!--            &lt;!&ndash; <img class="imgg" :src="baseApi + '/file/' + item.coverImage" alt=""> &ndash;&gt;-->
+
+<!--            <div class="bottom_1">-->
+<!--              &lt;!&ndash; <el-image v-if="courseType === 1" class="children" :src="require('../../assets/lesson/excellentCourses.png')" alt="" />-->
+<!--              <div v-else class="children" style="height: 58px;" /> &ndash;&gt;-->
+<!--              <div class="children" style="height: 58px;" />-->
+<!--              <div class="title">{{ item.name }}</div>-->
+<!--              <div v-if="userName !== 'admin445' && userName !== 'admin310'" class="txt">-->
+<!--                <el-image :src="require('../../assets/lesson/icon.png')" alt="" />-->
+<!--                <div class="schoolName">{{ item.schoolName }}</div>-->
+<!--                <div class="teacherName">{{ item.authorName }}</div>-->
+<!--              </div>-->
+<!--              &lt;!&ndash; <img class="con" src="../../assets/lesson/dian.png" alt=""> &ndash;&gt;-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </el-col>-->
+<!--      </el-row>-->
     </div>
+<!--    <div class="myTwo">-->
+<!--      <div class="block">-->
+<!--        <el-pagination-->
+<!--          :current-page.sync="currentPage"-->
+<!--          :page-size="pageSize"-->
+<!--          :prev-text="'上一页'"-->
+<!--          :next-text="'下一页'"-->
+<!--          layout="slot,prev, pager, next, jumper"-->
+<!--          :total="total"-->
+<!--          @size-change="handleSizeChange"-->
+<!--          @current-change="handleCurrentChange"-->
+<!--        />-->
+<!--      </div>-->
+<!--    </div>-->
   </div>
 </template>
 
@@ -114,13 +128,24 @@ import { getToken } from '@/utils/auth'
 import { parseTime } from '@/utils/index'
 import crumbs from '@/components/crumbs/crumbs.vue'
 import { getgrade, getLessonListNew } from '@/api/lesson/lesson'
+import classModel1 from '@/assets/lesson/classModel1.png'
+import classModel2 from '@/assets/lesson/classModel2.png'
+import classModel3 from '@/assets/lesson/classModel3.png'
+import classModel4 from '@/assets/lesson/classModel4.png'
+import LessDetail from '@/views/lesson/premiumCourses/detail.vue'
+import InsideList from '@/views/lesson/premiumCourses/insideList.vue'
 export default {
   name: 'MyLesson',
   components: {
-    crumbs
+     InsideList, LessDetail, crumbs
   },
   data() {
     return {
+      detailId: this.$route.query.id || null,
+      showType: this.$route.query.id ? 'detail' : '',
+      listType: '',
+      listId: null,
+      twoId: null,
       radio3: '1',
       radio4: '全部',
       radio5: '全部',
@@ -129,6 +154,24 @@ export default {
       currentPage: 1,
       pageSize: 8,
       total: 0,
+      classModelList:[{
+        id: 1,
+        coverImage: classModel1,
+        name: '视频课程'
+      },{
+        id: 2,
+        coverImage: classModel2,
+        name: '图文精华'
+      },{
+        id: 3,
+        coverImage: classModel3,
+        name: '特色展示'
+      },{
+        id: 4,
+        coverImage: classModel4,
+        name: '资讯动态'
+      },
+      ],
       gradeList: [],
       classList: [],
       lessonType: [],
@@ -153,6 +196,9 @@ export default {
     //   this.grade = 2
     // }
     if (this.$route.query.type) {
+      this.getGrade()
+      this.getLesson()
+      this.getGlass()
       this.courseType = parseInt(this.$route.query.type)
       this.getList()
     } else {
@@ -166,8 +212,32 @@ export default {
   },
   methods: {
     parseTime,
-    changeUrl(val) {
-      this.$router.push({ path: '/lesson/lessondetail?id=' + val + '&type=' + this.courseType })
+    changeRadioClass() {
+      this.showType = ''
+      this.listType = ''
+      this.currentPage = 1
+      this.total = 0
+      this.getList()
+
+    },
+    changeShowType(type, info) {
+      this.showType = type
+      if (type === 'insideList') {
+        this.insideId = info.id
+      } else if (type === 'detail') {
+        this.detailId = info.id
+      } else {
+        this.listId = info
+        this.getList(info)
+      }
+    },
+    changeType(val) {
+      this.listType = val.id
+      this.showType = 'list'
+      // this.$router.push({
+      //                     query: {...this.$route.query, type1: val.id, type2: 1, type3: 3, id:''}
+      //                   })
+      // this.$router.push({ path: '/lesson/lessondetail?id=' + val + '&type=' + this.courseType })
     },
     getGrade() {
       const params = {
@@ -230,14 +300,15 @@ export default {
         sort: 'id,desc',
         size: this.pageSize
       }
-      getLessonListNew(this.courseType === 1 ? params : params2)
-        .then((res) => {
-          this.total = res.totalElements
-          this.lessonList = res.content
-        })
-        .catch((error) => {
-          console.log(error)
-        })
+      this.params = this.courseType === 1 ? params : params2
+      // getLessonListNew(this.courseType === 1 ? params : params2)
+      //   .then((res) => {
+      //     this.total = res.totalElements
+      //     this.lessonList = res.content
+      //   })
+      //   .catch((error) => {
+      //     console.log(error)
+      //   })
     },
     handleSizeChange() {
       this.getList()
@@ -330,6 +401,7 @@ export default {
   // justify-content: space-between;
   margin-bottom: 17px;
   // flex-wrap:wrap;
+  min-height: 500px;
   &-item{
     margin-top: 32px;
     display: flex;
@@ -356,6 +428,26 @@ export default {
     }
   }
 
+}
+.model_box_01{
+  width: 25%;
+  margin-right: 20px;
+  background: linear-gradient( 180deg, #FFFFFF 0%, #EAF3FA 100%);
+  border-radius: 8px;
+  border: 1px solid #EAEAEA;
+  text-align: center;
+  padding:8px 0 14px 0;
+  .model_img{
+    width: 40%;
+  }
+  .text{
+    font-weight: 500;
+    font-size: 20px;
+    color: #282828;
+  }
+}
+.model_box_01:last-of-type{
+  margin-right: 0;
 }
 .bottom_1 {
   width: 290px;

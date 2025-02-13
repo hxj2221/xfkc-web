@@ -145,6 +145,22 @@ export function getComment(params) {
     params
   })
 }
+// 热点排行
+export function queryQualityViewRank(params) {
+  return request({
+    url: 'api/courseTitle/queryQualityViewRank',
+    method: 'get',
+    params
+  })
+}
+// 图文动态
+export function queryQualityCoursesNew(params) {
+  return request({
+                   url: 'api/courseTitle/queryQualityCoursesNew',
+                   method: 'get',
+                   params
+                 })
+}
 // 课程列表
 export function getLessonList(params) {
   return request({
@@ -159,6 +175,13 @@ export function getLessonListNew(params) {
     method: 'get',
     params
   })
+}
+export function getLessonLists(params) {
+  return request({
+                   url: 'api/courseTitle/queryCourseTitleRes',
+                   method: 'get',
+                   params
+                 })
 }
 // 资源库列表
 export function getLib(params) {

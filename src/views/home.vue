@@ -262,7 +262,7 @@
               v-for="lesson in lessonList"
               :key="lesson.id"
               class="cell"
-              @click="$router.push(`/lesson/lessondetail?id=${lesson.id}`)"
+              @click="$router.push(`/excellentCourse/excellentCourse?id=${lesson.id}&type=1&showType='detail'`)"
             >
               <el-image
 
@@ -399,7 +399,7 @@ import happyIcon from '../assets/home/晒幸福.png'
 import dateIcon from '../assets/home/有约2.png'
 import { getNews, getTabs } from '@/api/news/news'
 import { getBigData } from '@/api/bigData/bigData'
-import { getLessonList } from '@/api/lesson/lesson'
+import { getLessonLists} from '@/api/lesson/lesson'
 import { getCourseSourceQuery } from '@/api/coursesource/index'
 import moment from 'moment'
 import FlutterDialog from '@/components/flutterDialog'
@@ -642,8 +642,8 @@ export default {
         page: 0,
         size: 8
       }
-      getLessonList(params).then((res) => {
-        this.lessonList = res.content || []
+      getLessonLists(params).then((res) => {
+        this.lessonList = res || []
       })
     },
     getColor(grade) {

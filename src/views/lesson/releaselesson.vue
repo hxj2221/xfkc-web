@@ -148,6 +148,34 @@
           </el-select>
         </div>
         <div class="text-title">
+          <el-image class="icon" :src="require('../../assets/lesson/list.png')" alt />
+          是否推荐
+        </div>
+        <div class="text-select">
+          <el-select v-model="lessonDetail.recommendFlag" placeholder="请选择">
+            <el-option
+              v-for="item in download"
+              :key="item.value"
+              :label="item.label"
+              :value="item.id"
+            />
+          </el-select>
+        </div>
+        <div class="text-title">
+          <el-image class="icon" :src="require('../../assets/lesson/list.png')" alt />
+          类型
+        </div>
+        <div class="text-select">
+          <el-select v-model="lessonDetail.dateType" placeholder="请选择">
+            <el-option
+              v-for="item in dataTypeList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.id"
+            />
+          </el-select>
+        </div>
+        <div class="text-title">
           <el-image class="icon" :src="require('../../assets/lesson/lesson.png')" alt />
           课程目录
         </div>
@@ -243,6 +271,8 @@ export default {
       dialogImageUrl: '',
       dialogVisible: true,
       lessonDetail: {
+        dateType:'',
+        recommendFlag:'',
         name: '',
         coverImage: '',
         briefIntroduction: '',
@@ -267,6 +297,24 @@ export default {
           id: 1,
           label: '是'
         }
+      ],
+      dataTypeList: [
+        {
+          id: 1,
+          label: '视频课程'
+        },
+        {
+          id: 2,
+          label: '图文精华'
+        },
+        {
+          id: 3,
+          label: '特色展示'
+        },
+        {
+          id: 4,
+          label: '资讯动态'
+        },
       ],
       courseType: [
         {
@@ -363,6 +411,8 @@ export default {
       }
       geDetail(params)
         .then((res) => {
+          this.lessonDetail.dateType = res.dateType
+          this.lessonDetail.recommendFlag = res.recommendFlag
           this.lessonDetail.name = res.name
           this.lessonDetail.coverImage = res.coverImage
           this.lessonDetail.briefIntroduction = res.briefIntroduction
@@ -483,7 +533,6 @@ export default {
       const grade = this.gradeList.filter(item => item.id === this.lessonDetail.courseCategoryId1)[0]?.detail
       const courseCategory = this.lessonList.filter(item => item.id === this.lessonDetail.courseCategoryId2)[0]?.detail
       const courseCategoryName3 = this.courseCategoryList3.filter(item => item.id === this.lessonDetail.courseCategoryId3)[0]?.detail
-      console.log('提交this.lessonDetail', this.lessonDetail)
       senLesson({ ...this.lessonDetail, grade, courseCategory, courseCategoryName3 })
         .then((res) => {
           if (res.id) {
