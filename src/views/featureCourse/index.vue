@@ -2,7 +2,7 @@
   <div class="coursesource">
     <Category ref="CategoryRef" @changeShowType="changeShowType" />
     <InsideList v-if="showType==='insideList'" :id="insideId" ref="InsideList" @changeShowType="changeShowType" @changeTab="changeTab" />
-    <Detail v-else-if="showType==='detail'" :id="detailId" ref="Detail" @changeShowType="changeShowType" />
+    <Detail v-else-if="showType==='detail'" :id="detailId" ref="Detail" @changeShowType="changeShowType"  />
     <List v-else :id="listId" ref="List" @changeShowType="changeShowType" />
     <!-- <div class="paging">
       <div class="myTwo">
@@ -42,10 +42,11 @@ export default {
       currentPage: 1,
       total: 0,
       pageSize: 16,
+      detailId: Number(this.$route.query.id) || null,
       showType: 'list',
       insideId: null,
-      detailId: null,
-      listId: null
+      listId: null,
+      change: 1
       // list: []
     }
   },
@@ -53,6 +54,13 @@ export default {
     ...mapGetters(['baseApi', 'fileUploadApi'])
   },
   created() {
+  },
+  watch:{
+    'change'(newVal, oldVal){
+      if(newVal > oldVal && this.$route.query.id){
+        this.showType = 'detail'
+      }
+    }
   },
   methods: {
     changeShowType(type, info) {
@@ -65,6 +73,7 @@ export default {
         this.listId = info
         this.getList(info)
       }
+      this.change = 2
     },
     getList(id) {
       this.$refs.List?.getList(id)

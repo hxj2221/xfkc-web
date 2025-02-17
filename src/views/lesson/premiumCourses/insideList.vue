@@ -137,7 +137,8 @@ export default {
         page: this.currentPage - 1,
         size: this.pageSize,
         dateType: this.type,
-        key:this.searchKey
+        key:this.searchKey,
+        videoType:1
       }
       getLessonListNew(params).then(res => {
         this.list = res?.content || []

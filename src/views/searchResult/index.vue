@@ -10,7 +10,7 @@
         <div class="searchresult-list-item-title">{{ item.name }}</div>
         <!-- <div class="searchresult-list-item-type">【{{ item.videoType === 1 ? '精品课程':'课程资源' }}】</div> -->
 
-        <div class="searchresult-list-item-type"> 【{{ item.videoType === 1 ? '精品课程' : item.videoType === 2 ? '课程资源' : '特色校' }}】</div>
+        <div class="searchresult-list-item-type"> 【{{ typeList.find(e=>e.id ==item.videoType ).name }}】</div>
         <div class="searchresult-list-item-time">{{ moment(item.createTime).format('YYYY-MM-DD') }}</div>
       </div>
     </div>
@@ -48,6 +48,24 @@ export default {
       total: 0,
       pageSize: 10,
       list: [],
+      typeList:[
+        {
+          name:'精品课程',
+          id: 1
+        },
+        {
+          name:'课程资源',
+          id: 2
+        },
+        {
+          name:'特色展示',
+          id: 3
+        },
+        {
+          name:'精品栏目',
+          id: 4
+        },
+      ],
       key: this.$route.query.key && this.$route.query.key !== '' ? decodeURIComponent(this.$route.query.key) : ''
     }
   },
@@ -89,6 +107,8 @@ export default {
     toDetail(item) {
       if (item.videoType === 1) {
         this.$router.push({ path: `/excellentCourse/excellentCourse?id=${item.id}&type=1&showType='detail'` })
+      } else if (item.videoType === 3) {
+        this.$router.push({ path: `/featureCourse/index?id=${item.id}` })
       } else {
         this.$router.push({ path: `/coursesource/index?id=${item.id}` })
       }
