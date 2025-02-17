@@ -109,6 +109,8 @@ export default {
         this.$router.push({ path: `/excellentCourse/excellentCourse?id=${item.id}&type=1&showType='detail'` })
       } else if (item.videoType === 3) {
         this.$router.push({ path: `/featureCourse/index?id=${item.id}` })
+      } else if (item.videoType === 4) {
+        this.$router.push({ path: `/news/newsDetail?id=${item.id}` })
       } else {
         this.$router.push({ path: `/coursesource/index?id=${item.id}` })
       }
