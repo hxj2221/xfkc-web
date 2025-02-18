@@ -11,7 +11,7 @@
             <el-image
               v-if="type != 4"
               class="model_img"
-              :src="item.coverImage"
+              :src="$comm.url(item.coverImage)"
             />
             <div style="vertical-align: top">
               <div class="content_text" v-html="item.briefIntroduction"  />
