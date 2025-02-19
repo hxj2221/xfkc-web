@@ -128,7 +128,7 @@ export default {
   methods: {
     parseTime,
     searchList(){
-      this.$router.push({ path: `/searchResult/index?key=${encodeURIComponent(this.searchKey)}` })
+      this.$router.push({ path: `/searchResult/index?key=${encodeURIComponent(this.searchKey)}&videoType=1` })
     },
     getList() {
       const params = {
