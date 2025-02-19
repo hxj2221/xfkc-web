@@ -66,7 +66,8 @@ export default {
           id: 4
         },
       ],
-      key: this.$route.query.key && this.$route.query.key !== '' ? decodeURIComponent(this.$route.query.key) : ''
+      key: this.$route.query.key && this.$route.query.key !== '' ? decodeURIComponent(this.$route.query.key) : '',
+      videoType: this.$route.query.videoType || ''
     }
   },
   computed: {
@@ -81,7 +82,8 @@ export default {
       const params = {
         key: this.key,
         page: this.currentPage,
-        size: this.pageSize
+        size: this.pageSize,
+        videoType:this.videoType
       }
       getSearchListApi(params).then(res => {
         this.list = res?.content || []
