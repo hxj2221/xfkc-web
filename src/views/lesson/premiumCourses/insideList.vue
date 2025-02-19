@@ -128,8 +128,7 @@ export default {
   methods: {
     parseTime,
     searchList(){
-      this.currentPage = 1
-      this.getList()
+      this.$router.push({ path: `/searchResult/index?key=${encodeURIComponent(this.searchKey)}` })
     },
     getList() {
       const params = {
@@ -137,7 +136,6 @@ export default {
         page: this.currentPage - 1,
         size: this.pageSize,
         dateType: this.type,
-        key:this.searchKey,
         videoType:1
       }
       getLessonListNew(params).then(res => {
