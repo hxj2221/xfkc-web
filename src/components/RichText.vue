@@ -86,6 +86,7 @@ export default {
             colorpicker
             hr
             preview
+            media
           `,
         forced_root_block: 'p',
         force_p_newlines: true,
@@ -171,7 +172,40 @@ export default {
         object_resizing: true,
 
         // Image
-        image_advtab: false
+        image_advtab: false,
+
+        // CONFIG: Media
+        media_live_embeds: true,
+        media_alt_source: false,
+        media_poster: false,
+        media_dimensions: false,
+        media_filter_html: false,
+        media_url_resolver: (data, resolve, reject) => {
+          // 检测URL的文件扩展名来确定视频类型
+          let videoType = 'video/mp4'; // 默认类型
+          const url = data.url.toLowerCase();
+          
+          if (url.endsWith('.webm')) {
+            videoType = 'video/webm';
+          } else if (url.endsWith('.ogg') || url.endsWith('.ogv')) {
+            videoType = 'video/ogg';
+          } else if (url.endsWith('.mov')) {
+            videoType = 'video/quicktime';
+          } else if (url.endsWith('.avi')) {
+            videoType = 'video/x-msvideo';
+          } else if (url.endsWith('.wmv')) {
+            videoType = 'video/x-ms-wmv';
+          } else if (url.endsWith('.flv')) {
+            videoType = 'video/x-flv';
+          } else if (url.endsWith('.3gp')) {
+            videoType = 'video/3gpp';
+          }
+          
+          // 直接解析URL，不做额外处理
+          resolve({
+            html: `<video controls="controls" width="100%" height="auto"><source src="${data.url}" type="${videoType}" />您的浏览器不支持视频播放</video>`
+          });
+        },
         // imagetools_toolbar: 'rotateleft rotateright | flipv fliph | editimage imageoptions'
       }
     }
@@ -230,12 +264,23 @@ export default {
         window.tinymce.activeEditor.setProgressState(false)
       }
     },
-    insertVideo(url) {
-      // 插入文本
-      const video = `<video controls="controls" width="" height="">
-                  <source src="http://vod.tianyinkeji.cn/sv/399b98fd-16d0596ab8d/399b98fd-16d0596ab8d.mp4" />
-                  </video>`
-      window.tinymce.activeEditor.selection.setContent(video)
+    insertVideo(url, type = 'video/mp4') {
+      try {
+        // 直接插入视频标签
+        const videoHtml = `
+          <p>
+            <video controls="controls" width="100%" height="auto">
+              <source src="${url}" type="${type || 'video/mp4'}" />
+              您的浏览器不支持视频播放
+            </video>
+          </p>
+        `
+        window.tinymce.activeEditor.insertContent(videoHtml)
+        // 通知内容变化
+        window.tinymce.activeEditor.fire('change')
+      } catch (error) {
+        console.error('插入视频时出错:', error)
+      }
     },
     init() {
       const self = this
@@ -246,11 +291,67 @@ export default {
         ...this.DefaultConfig,
         file_picker_types: 'media',
         file_picker_callback: (cb, value, meta) => {
-          // this.$refs.aliupload.selectFile()
-          // this.videoUploading = true
-          this.pathInput = cb
+          // 创建一个隐藏的文件输入框
+          const input = document.createElement('input')
+          input.setAttribute('type', 'file')
+          
+          // 设置接受的文件类型，支持常见视频格式
+          if (meta.filetype === 'media') {
+            input.setAttribute('accept', 'video/*')
+          }
+          
+          // 监听文件选择事件
+          input.onchange = () => {
+            const file = input.files[0]
+            if (!file) return
+            
+            // 创建FormData对象用于上传
+            const formData = new FormData()
+            formData.append('file', file)
+            formData.append('path', '/richtext')
+            
+            // 显示上传进度
+            window.tinymce.activeEditor.setProgressState(true)
+            
+            // 发送上传请求
+            const xhr = new XMLHttpRequest()
+            xhr.open('POST', `${self.baseApi}/api/localStorage/upload`)
+            xhr.setRequestHeader('Authorization', getToken())
+            
+            xhr.onload = function() {
+              // 隐藏上传进度
+              window.tinymce.activeEditor.setProgressState(false)
+              
+              if (xhr.status !== 201) {
+                // 上传失败
+                self.$emit('on-upload-fail')
+                console.error('上传失败:', xhr.responseText)
+                return
+              }
+              
+              try {
+                // 上传成功，获取返回的URL
+                const json = JSON.parse(xhr.responseText)
+                const url = self.$comm.url(json.path)
+                
+                // 直接插入视频，而不是调用回调
+                self.insertVideo(url, file.type)
+              } catch (error) {
+                console.error('处理上传响应时出错:', error)
+              }
+            }
+            
+            xhr.onerror = function() {
+              window.tinymce.activeEditor.setProgressState(false)
+              console.error('上传请求失败')
+            }
+            
+            xhr.send(formData)
+          }
+          
+          // 触发文件选择对话框
+          input.click()
         },
-
         // 图片上传
         images_upload_handler: function(blobInfo, success, failure) {
           const xhr = new XMLHttpRequest()

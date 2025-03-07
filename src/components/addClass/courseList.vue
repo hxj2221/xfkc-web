@@ -205,19 +205,26 @@ export default {
           return
         }
 
-        if (!this.form.videoUrl && !this.form.courseUrl) {
-          alert('请上传课程视频或课程附件')
-          return
-        }
+// 移除视频或附件必选验证 20250306-学文修改开始
+// if (!this.form.videoUrl && !this.form.courseUrl) {
+//   alert('请上传课程视频或课程附件')
+//   return
+// }
 
-        this.courseList.push({
-          name: this.form.name, // 课程名称
-          source: this.form.videoPath, // 视频URL
-          episode: index, // 课程序号
-          coursewareSource: this.form.courseWarePath, // 视频名称
-          coursewareTitle: this.form.courseWareName // 附件名称
-        })
-      }
+// 确保source字段不为空，如果用户没有上传视频，则使用默认值
+const videoPath = this.form.videoPath || '无视频'
+// 确保coursewareSource和coursewareTitle字段不为空，如果用户没有上传附件，则使用默认值
+const courseWarePath = this.form.courseWarePath || '无附件'
+const courseWareName = this.form.courseWareName || '无附件'
+
+this.courseList.push({
+  name: this.form.name, // 课程名称
+  source: videoPath, // 视频URL
+  episode: index, // 课程序号
+  coursewareSource: courseWarePath, // 附件地址
+  coursewareTitle: courseWareName // 附件名称
+}) // 20250306-学文修改 结束
+} // 添加缺失的大括号来关闭if条件语句
 
       // 编辑保存信息
       if (this.dialog.edit) {

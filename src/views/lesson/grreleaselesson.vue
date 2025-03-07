@@ -334,22 +334,27 @@ export default {
         return
       }
 
-      if (this.lessonDetail.courseList.length === 0) {
-        Notification.error({
-          title: '请输入课程目录'
-        })
-        return
-      }
+      // 课程目录不再是必填项
+      // if (this.lessonDetail.courseList.length === 0) {
+      //   Notification.error({
+      //     title: '请输入课程目录'
+      //   })
+      //   return
+      // }
 
       let isTpye = false
-      this.lessonDetail.courseList.map((res) => {
-        if (!res.name || !res.source) {
-          Notification.error({
-            title: '请添加完整的课程信息'
-          })
-          isTpye = true
-        }
-      })
+      // 如果有课程目录项，则验证其完整性
+      if (this.lessonDetail.courseList.length > 0) {
+        this.lessonDetail.courseList.map((res) => {
+          if (!res.name) {
+            Notification.error({
+              title: '请添加课程名称'
+            })
+            isTpye = true
+          }
+          // 视频和附件不再是必填项，已在courseList.vue中设置默认值
+        })
+      }
 
       if (isTpye) {
         console.log(this.lessonDetail)

@@ -25,21 +25,25 @@
 
         </div>
       </div>
-      <div class="source-content">
-        <span v-show="typePlay === 'video'">
+      <div v-if="hasVideoContent" class="source-content">
+        <span v-if="typePlay === 'video' && videoUrl !== '无视频'">
           <video id="myVideo" ref="myVideo" class="video-js vjs-big-play-centered">
-            <source src="//vjs.zencdn.net/v/oceans.mp4" type="video/mp4">
+            <source :src="$comm.url(videoUrl)" type="video/mp4">
           </video>
         </span>
-        <div v-show="typePlay === 'ppt'">
+        <div v-else-if="typePlay === 'ppt'">
           <iframe :src="pptUrl" width="100%" height="588px" frameborder="1" />
         </div>
       </div>
       <div class="source-bto">
         <div class="tips">感谢所有为资源建设提供资料的单位和个人<br>未经允许不得转载或引用</div>
 <!--         <div class="shouke">全屏授课</div>-->
+
+
       </div>
-      <div class="source-remark" v-html="lessonDetail.briefIntroduction" />
+      <div class="source-remark" :class="{ 'no-video': !hasVideoContent }">
+        <div v-html="lessonDetail.briefIntroduction"></div>
+      </div>
       <el-dialog
         title="给出您的合理评分"
         :visible.sync="dialogVisible"
@@ -60,15 +64,15 @@
       <div class="coursesourcedetail-right-list">
         <template v-if="list.length > 0">
           <div v-for="item in list" :key="item.id" class="listitem" @click="openDetail(item)">
-            <el-image
-              fit="fill"
-              :src="$comm.url(item.imgUrl)"
-              style="width: 132px; height: 84px;"
-              class="imgbox"
-            />
-            <div class="info">
-              <div class="remark">{{ item.name }}1111111111111111111111111111111111111111111111111111111111111</div>
-               <div class="from" v-html="item.briefIntroduction" />
+            <div class="imgbox">
+              <el-image
+                fit="cover"
+                :src="$comm.url(item.coverImage)"
+              >
+                <div slot="error" class="image-slot">
+                  <i class="el-icon-picture-outline" style="font-size: 24px; color: #909399;"></i>
+                </div>
+              </el-image>
             </div>
           </div>
         </template>
@@ -99,6 +103,7 @@ export default {
         name: '',
         url: ''
       },
+      videoUrl: '无视频',
       value:'',
       pptUrl:'',
       typePlay:'',
@@ -113,10 +118,14 @@ export default {
       courseId:0,
       isGetCode:false,
       vCode:null,
-      colors: ['#99A9BF', '#F7BA2A', '#FF9900'] // 等同于 { 2: '#99A9BF', 4: { value: '#F7BA2A', excluded: true }, 5: '#FF9900' }
+      colors: ['#99A9BF', '#F7BA2A', '#FF9900'], // 等同于 { 2: '#99A9BF', 4: { value: '#F7BA2A', excluded: true }, 5: '#FF9900' }
     }
   },
   computed: {
+    hasVideoContent() {
+      return (this.typePlay === 'video' && this.videoUrl !== '无视频') || 
+             (this.typePlay === 'ppt' && this.pptUrl);
+    }
   },
   created() {
     if (this.id) {
@@ -129,12 +138,17 @@ export default {
   },
   mounted() {
     window.removeEventListener('beforeunload', this.stopPolling)
-    this.initVideo() // 初始化视频
+    // 不在这里初始化视频播放器，而是等待数据加载完成后再决定是否初始化
   },
   methods: {
     parseTime,
     // 初始化视频方法
     initVideo() {
+      // 如果没有视频元素或没有视频内容，或不是视频模式，则不初始化视频播放器
+      if (!this.$refs.myVideo || this.videoUrl === '无视频' || this.typePlay !== 'video') {
+        return
+      }
+      
       const _this = this
       _this.stopPolling()
       _this.isGetCode = true
@@ -235,6 +249,12 @@ export default {
           }
           this.isGetCode = true
           this.vCode = null
+          
+          // 验证并清理HTML内容
+          if (res) {
+            res.briefIntroduction = this.validateHtml(res.briefIntroduction);
+          }
+          
           this.lessonDetail = res
           this.lessonList = res.courseList
           this.courseId = this.lessonList[0].id
@@ -283,7 +303,10 @@ export default {
       this.courseId = note
       this.courseWare.name = courseName
       this.courseWare.url = courseUrl
+      this.videoUrl = video || '无视频'
       const url = this.$comm.url(video)
+      
+      // 先设置内容类型，这样v-if条件会先生效
       if (
         url.substring(url.length - 3, url.length) === 'ppt' ||
         url.substring(url.length - 3, url.length) === 'ptx'
@@ -293,11 +316,26 @@ export default {
           'https://api.idocv.com/view/url?url=' + url
       } else {
         this.typePlay = 'video'
-        this.videoPlayer.src(url)
-        if (this.videoPlayer) {
-          this.videoPlayer.currentTime(watchTime)
-        }
       }
+      
+      // 使用nextTick确保DOM更新后再初始化视频播放器
+      this.$nextTick(() => {
+        // 只有当是视频模式且有视频内容时，才处理视频播放器
+        if (this.typePlay === 'video' && video && video !== '无视频') {
+          // 如果视频播放器未初始化，则初始化
+          if (!this.videoPlayer) {
+            this.initVideo()
+          }
+          
+          // 初始化后设置视频源和播放位置
+          if (this.videoPlayer) {
+            this.videoPlayer.src(url)
+            if (watchTime) {
+              this.videoPlayer.currentTime(watchTime)
+            }
+          }
+        }
+      })
     },
 
     getList() {
@@ -308,10 +346,18 @@ export default {
         type:1
       }
       queryQualityCoursesNew(params).then(res => {
-        this.list = res?.content || []
+        // 确保返回的数据是有效的，并且每个项目都有name属性和有效的briefIntroduction
+        this.list = (res?.content || []).map(item => {
+          return {
+            ...item,
+            name: item.name || '暂无标题',  // 如果name为空，设置默认值
+            briefIntroduction: this.validateHtml(item.briefIntroduction) // 验证并清理HTML内容
+          }
+        })
       })
         .catch((error) => {
           console.log(error)
+          this.list = []  // 发生错误时清空列表
         })
     },
     openDetail(item) {
@@ -363,6 +409,27 @@ export default {
     },
     stopPolling() {
       if (this.timeout) clearInterval(this.timeout)
+    },
+    validateHtml(html) {
+      if (!html || typeof html !== 'string') {
+        return '暂无课程简介';
+      }
+
+      // 1. 移除所有HTML标签，只保留文本内容
+      let textContent = html.replace(/<[^>]+>/g, '');
+      
+      // 2. 移除HTML实体
+      textContent = textContent.replace(/&[^;]+;/g, '');
+      
+      // 3. 移除多余空格和换行
+      textContent = textContent.replace(/\s+/g, ' ').trim();
+      
+      // 4. 如果处理后的内容为空，返回默认文本
+      if (!textContent.trim()) {
+        return '暂无课程简介';
+      }
+      
+      return textContent;
     }
   },
   beforeUnmount() {
@@ -413,15 +480,12 @@ export default {
       overflow: hidden;
       width: 953px;
       height: 588px;
-      background-color: #111;
       border-radius: 20px;
-      img{
-        display: block;
-        max-width: 100%;
-        margin: 10px auto;
-      }
-      /deep/ video{
-        width: 100% !important;
+      
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
       }
     }
     .source-bto{
@@ -448,6 +512,13 @@ export default {
     }
     .source-remark{
       margin-top: 20px;
+      
+      &.no-video {
+        margin-top: 0; // 当没有视频时，移除上边距
+        padding: 20px;
+        background: #fff;
+        border-radius: 20px;
+      }
     }
   }
   .coursesourcedetail-right{
@@ -457,6 +528,7 @@ export default {
       line-height: 32px;
       font-size: 18px;
       font-weight: bold;
+      margin-bottom: 16px;
       span{
         color: #49B1EE;
         letter-spacing: 2px;
@@ -464,34 +536,36 @@ export default {
       }
     }
     &-list{
-      .listitem{
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      
+      .listitem {
         cursor: pointer;
-        margin-top: 20px;
-        display: flex;
-        .info{
-          flex: 1;
-          line-height: 20px;
-          font-size: 14px;
-          margin-left: 10px;
-          .remark{
-            width: 136px;
-            margin-top: 2px;
-            height: 40px;
-            word-wrap:break-word;
-            overflow:hidden;
-            text-overflow: ellipsis;
-            -webkit-line-clamp: 2;
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-          }
-          .from{
-            width: 136px;
-            margin-top: 12px;
-            height: 20px;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            color: #999999;
+
+        .imgbox {
+          width: 100%;
+          padding-bottom: 60%; // 保持宽高比
+          position: relative;
+          border-radius: 4px;
+          overflow: hidden;
+          background: #f5f5f5;
+
+          /deep/ .el-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+
+            .image-slot {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              width: 100%;
+              height: 100%;
+              background: #f5f5f5;
+            }
           }
         }
       }

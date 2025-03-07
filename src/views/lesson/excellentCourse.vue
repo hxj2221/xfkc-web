@@ -13,6 +13,7 @@
             </el-radio-group>
           </div>
         </div> -->
+        <!-- 隐藏年级部分 
         <div class="two">
           <div class="name_2">
             年
@@ -25,6 +26,8 @@
             </el-radio-group>
           </div>
         </div>
+        -->
+        <!-- 隐藏版块部分 
         <div class="three">
           <div class="name_2">版<span class="zhanwei">块</span></div>
           <div>
@@ -34,13 +37,12 @@
             </el-radio-group>
           </div>
         </div>
-        <div class="three" style="top: 36px">
-          <div class="name_2">课程类目</div>
-          <div>
-            <el-radio-group v-model="radioClass" @change="changeRadioClass">
-              <el-radio-button label="全部" />
-              <el-radio-button v-for="item in classList" :key="item.id" :label="item.id">{{ item.detail }}</el-radio-button>
-            </el-radio-group>
+        -->
+        <div class="three" style="top: 0px">
+          <div class="name_2" style="margin-right: 15px;">课程类目</div>
+          <div class="custom-radio-group">
+            <span :class="['custom-radio', radioClass === '全部' ? 'active' : '']" @click="changeCustomRadio('全部')">全部</span>
+            <span v-for="item in classList" :key="item.id" :class="['custom-radio', radioClass === item.id ? 'active' : '']" @click="changeCustomRadio(item.id)">{{ item.detail }}</span>
           </div>
         </div>
       </div>
@@ -315,6 +317,10 @@ export default {
     },
     handleCurrentChange() {
       this.getList()
+    },
+    changeCustomRadio(val) {
+      this.radioClass = val
+      this.changeRadioClass()
     }
   }
 }
@@ -329,9 +335,10 @@ export default {
 }
 .top {
   width: 1366px;
-  height: 156px;
-  background-image: url("../../assets/achievement/top_background.png");
-  background-size: 100% 100%;
+  height: 60px;
+  background-color: #f5f7fa;
+  display: flex;
+  align-items: center;
 }
 .one {
   display: flex;
@@ -351,7 +358,7 @@ export default {
   display: flex;
   align-items: center;
   position: relative;
-  top: 26px;
+  top: 0;
   left: 22px;
 }
 .name_1 {
@@ -359,42 +366,10 @@ export default {
 }
 .name_2 {
   font-size: 16px;
+  margin-right: 15px;
 }
 .zhanwei {
   margin-left: 28px;
-}
-/deep/ .el-radio-button__inner {
-  color: #358de4;
-  border: 1px solid #358de4;
-  border-radius: 10px;
-  padding: 9px 10px;
-  font-size: 16px;
-  text-align: center;
-  margin-left: 10px;
-}
-/deep/ .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-  border: 1px solid #358de4;
-  background-color: #358de4;
-  padding: 9px 16px;
-  font-size: 16px;
-  text-align: center;
-  margin-left: 10px;
-}
-/deep/ .el-radio-button:first-child .el-radio-button__inner {
-  border: 1px solid #358de4;
-  border-radius: 10px;
-  width: 65px;
-  padding: 9px 16px;
-  text-align: center;
-  margin-left: 12px;
-}
-/deep/ .el-radio-button:last-child .el-radio-button__inner {
-  border: 1px solid #358de4;
-  border-radius: 10px;
-  padding: 9px 16px;
-  font-size: 16px;
-  text-align: center;
-  margin-left: 10px;
 }
 .box_1 {
   // display: flex;
@@ -505,4 +480,23 @@ export default {
   margin-left: 247px;
     }
 
+.custom-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+}
+.custom-radio {
+  margin-right: 10px;
+  padding: 8px 15px;
+  font-size: 14px;
+  text-align: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  background-color: #fff;
+  cursor: pointer;
+}
+.custom-radio.active {
+  border: 1px solid #409EFF;
+  background-color: #409EFF;
+  color: white;
+}
 </style>

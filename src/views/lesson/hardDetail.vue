@@ -14,7 +14,7 @@
     </div>
     <div class="hardware">
       <div class="hardware_left">
-        <div v-show="showPlay">
+        <div v-show="showPlay && videoSrc">
           <i class="el-icon-circle-close close_btn" @click="closeVideo" />
           <video ref="myVideo" class="video-js" style="border-radius: 15px;">
             <source type="video/mp4">

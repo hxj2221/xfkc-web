@@ -3,30 +3,32 @@
     <div class="coursesourceinside-lf">
       <template v-if="list.length > 0">
         <div v-for="item in list" :key="item.id" class="coursesourceinside-lf-item" @click="toCourseDetail(item)">
-          <div class="title">
-           {{item.name}}
-          </div>
+          <div class="title">{{item.name || '暂无标题'}}</div>
           <div class="time">{{ parseTime(item.createTime) }}</div>
-          <div class="flex items-center content_box">
-            <el-image
-              v-if="type != 4"
-              class="model_img"
-              :src="$comm.url(item.coverImage)"
-            />
-            <div style="vertical-align: top">
-              <div class="content_text" v-html="item.briefIntroduction"  />
-              <div class='flex items-center' style="margin-top: 8px;font-size: 12px;color: #999999;" v-if="type == 1">
+          <div class="content-wrapper">
+            <div class="item-left">
+              <el-image
+                class="thumb-img"
+                :src="$comm.url(item.coverImage)"
+              >
+                <div slot="error" class="image-slot">
+                  <i class="el-icon-picture-outline" style="font-size: 30px; color: #909399;"></i>
+                </div>
+              </el-image>
+            </div>
+            <div class="item-right">
+              <div class="content-text">{{ item.briefIntroduction }}</div>
+              <div class="bottom-tag">
                 <el-image
                   class="icon_img"
                   :src="locIcon"
                 />
-                {{item.schoolName}}·{{item.authorName}}
+                <span>总区 区管理员</span>
               </div>
             </div>
           </div>
         </div>
         <div class="paging">
-
           <div class="myTwo">
             <div class="block">
               <el-pagination
@@ -71,14 +73,18 @@
       </div>
       <div class="head"><span>//</span>图文动态</div>
       <div v-if="tuijianList.length > 0" class="coursesourceinside-rt-tjbox">
-        <div v-for="item in tuijianList" :key="item.id" @click="toCourseDetail(item)">
+        <div v-for="item in tuijianList" :key="item.id" class="tj-item" @click="toCourseDetail(item)">
           <div class="imgbox">
             <el-image
               fit="fill"
-              :src="$comm.url(item.imgUrl)"
+              :src="$comm.url(item.coverImage)"
               style="width: 182px; height: 98px;"
-            /></div>
-          <div class="title">{{ item.title }}</div>
+            >
+              <div slot="error" class="image-slot">
+                <i class="el-icon-picture-outline" style="font-size: 30px; color: #909399;"></i>
+              </div>
+            </el-image>
+          </div>
         </div>
       </div>
       <div v-else style="line-height: 100px; text-align: center; color: #999999;">暂无内容</div>
@@ -130,21 +136,51 @@ export default {
     searchList(){
       this.$router.push({ path: `/searchResult/index?key=${encodeURIComponent(this.searchKey)}&videoType=1` })
     },
+    validateHtml(html) {
+      if (!html || typeof html !== 'string') {
+        return '暂无课程简介';
+      }
+
+      // 1. 移除所有HTML标签，只保留文本内容
+      let textContent = html.replace(/<[^>]+>/g, '');
+      
+      // 2. 移除HTML实体
+      textContent = textContent.replace(/&[^;]+;/g, '');
+      
+      // 3. 移除多余空格和换行
+      textContent = textContent.replace(/\s+/g, ' ').trim();
+      
+      // 4. 如果处理后的内容为空，返回默认文本
+      if (!textContent.trim()) {
+        return '暂无课程简介';
+      }
+      
+      return textContent;
+    },
     getList() {
       const params = {
         ...this.params,
         page: this.currentPage - 1,
         size: this.pageSize,
         dateType: this.type,
-        videoType:1
+        videoType: 1
       }
       getLessonListNew(params).then(res => {
-        this.list = res?.content || []
-        this.total = res?.totalElements
-      })
-        .catch((error) => {
-          console.log(error)
+        this.list = (res?.content || []).map(item => {
+          return {
+            ...item,
+            name: item.name || '暂无标题',
+            coverImage: item.coverImage || '',
+            briefIntroduction: this.validateHtml(item.briefIntroduction)
+          }
         })
+        this.total = res?.totalElements || 0
+      })
+      .catch((error) => {
+        console.log(error)
+        this.list = []
+        this.total = 0
+      })
     },
     handleSizeChange() {
       this.getList(this.columnId)
@@ -162,10 +198,18 @@ export default {
         topN:10
       }
       queryQualityViewRank(params).then(res => {
-        this.groupList = res
+        // 确保返回的数据是有效的，并且每个项目都有name属性
+        this.groupList = (res || []).map(item => {
+          return {
+            ...item,
+            name: item.name || '暂无标题',  // 如果name为空，设置默认值
+            briefIntroduction: this.validateHtml(item.briefIntroduction) // 验证并清理HTML内容
+          }
+        })
       })
         .catch((error) => {
           console.log(error)
+          this.groupList = []  // 发生错误时清空列表
         })
     },
     getCourseSource() {
@@ -177,10 +221,18 @@ export default {
       }
       queryQualityViewRank(params).then(res => {
         console.log('专题列表', res)
-        this.courseList = res
+        // 确保返回的数据是有效的，并且每个项目都有name属性
+        this.courseList = (res || []).map(item => {
+          return {
+            ...item,
+            name: item.name || '暂无标题',  // 如果name为空，设置默认值
+            briefIntroduction: this.validateHtml(item.briefIntroduction) // 验证并清理HTML内容
+          }
+        })
       })
         .catch((error) => {
           console.log(error)
+          this.courseList = []  // 发生错误时清空列表
         })
     },
     getTjList() {
@@ -188,14 +240,22 @@ export default {
         page: 0,
         size: 10,
         recommendFlag: 1,
-        type:1
+        type: 1
       }
       queryQualityCoursesNew(params).then(res => {
-        this.tuijianList = res.content
-      })
-        .catch((error) => {
-          console.log(error)
+        this.tuijianList = (res?.content || []).map(item => {
+          return {
+            ...item,
+            name: item.name || '暂无标题',
+            coverImage: item.coverImage || '',
+            briefIntroduction: this.validateHtml(item.briefIntroduction)
+          }
         })
+      })
+      .catch((error) => {
+        console.log(error)
+        this.tuijianList = []
+      })
     },
     toCourseDetail(item) {
       this.$emit('changeShowType', 'detail', item)
@@ -214,65 +274,57 @@ export default {
     margin-right: 32px;
     &-item{
       padding: 20px 0;
-      box-shadow: inset 0px -1px 0px 0px #EEEEEE;
-      .title{
-        margin-bottom: 10px;
-      }
-      .content_box{
-        margin-top: 20px;
-        align-content: flex-start;
-        .icon_img{
-          width: 11px;
-          height: 12px;
-          margin-right: 4px;
-        }
-        .model_img{
-          width: 170px;
-          min-width: 170px;
-          height: 106px;
-          margin-right: 20px;
-        }
-        .content_text{
-          max-height: 88px;
-          min-height: 60px;
-          word-wrap: break-word;   //自动换行
-          word-break: break-all;    //自动换行（兼容字母）
-          overflow: hidden;       //超出隐藏
-          text-overflow: ellipsis;   //溢出显示省略号
-          display: -webkit-box;
-          -webkit-line-clamp: 4;   //显示3行
-          -webkit-box-orient: vertical;
-          font-size: 16px;
-          line-height: 22px;
-          color: #999999;
-
-        }
-      }
-      .title{
-        height: 24px;
+      border-bottom: 1px solid #EEEEEE;
+      cursor: pointer;
+      .title {
         font-size: 18px;
         font-weight: bold;
         line-height: 24px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        margin-bottom: 10px;
       }
-      .time{
-        height: 24px;
-        line-height: 24px;
+      .time {
         font-size: 14px;
         color: #666666;
+        line-height: 24px;
+        margin-bottom: 20px;
       }
-      .remark{
-        margin-top: 20px;
-        height: 66px;
-        line-height: 22px;
-        text-overflow: ellipsis;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        font-size: 16px;
-        color: #999999;
+      .content-wrapper {
+        display: flex;
+        .item-left {
+          margin-right: 20px;
+          .thumb-img {
+            width: 170px;
+            height: 106px;
+            border-radius: 4px;
+            object-fit: cover;
+          }
+        }
+        .item-right {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          .content-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #666;
+            margin-bottom: 10px;
+            /deep/ p {
+              margin: 0;
+            }
+          }
+          .bottom-tag {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: #999;
+            .icon_img {
+              width: 12px;
+              height: 12px;
+              margin-right: 4px;
+            }
+          }
+        }
       }
     }
   }
@@ -307,24 +359,34 @@ export default {
       margin-bottom: 20px;
     }
     &-tjbox{
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      .imgbox{
-        margin-top: 12px;
-        width: 182px;
-        height: 98px;
-        border-radius: 6px;
-        overflow: hidden;
-      }
-      .title{
-        width: 182px;
-        margin-top: 10px;
-        height: 20px;
-        line-height: 20px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      
+      .tj-item {
+        .imgbox {
+          margin-top: 12px;
+          width: 182px;
+          height: 98px;
+          border-radius: 6px;
+          overflow: hidden;
+          background: #f5f5f5;
+          cursor: pointer;
+          
+          /deep/ .el-image {
+            width: 100%;
+            height: 100%;
+            
+            .image-slot {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              width: 100%;
+              height: 100%;
+              background: #f5f5f5;
+            }
+          }
+        }
       }
     }
     .head{

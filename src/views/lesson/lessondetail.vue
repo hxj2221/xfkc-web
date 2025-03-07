@@ -28,13 +28,16 @@
         <el-image :src="require('../../assets/lesson/peoplle.png')" alt />
       </div>
       <div class="detail-video">
-        <span v-show="typePlay === 'video'">
+        <span v-show="typePlay === 'video' && videoUrl !== '无视频'">
           <video id="myVideo" ref="myVideo" class="video-js vjs-big-play-centered">
-            <source src="//vjs.zencdn.net/v/oceans.mp4" type="video/mp4">
+            <source :src="videoUrl" type="video/mp4">
           </video>
         </span>
         <div v-show="typePlay === 'ppt'">
           <iframe :src="pptUrl" width="100%" height="588px" frameborder="1" />
+        </div>
+        <div v-show="typePlay === 'video' && videoUrl === '无视频'" class="no-video-message">
+          该课程暂无视频内容
         </div>
       </div>
       <div class="detail-tab">
@@ -290,7 +293,8 @@ export default {
       courseType: this.$route.query.type ? parseInt(this.$route.query.type) : 1,
       timeout: null,
       isGetCode: false,
-      vCode: null
+      vCode: null,
+      videoUrl: ''
     }
   },
   computed: {
@@ -401,6 +405,7 @@ export default {
           this.lessonList = res.courseList
           this.courseId = this.lessonList[0].id
           this.judgeVideo()
+          this.videoUrl = this.lessonList[0].source
         })
         .catch((error) => {
           console.log(error)
@@ -559,6 +564,7 @@ export default {
       this.courseId = note
       this.courseWare.name = courseName
       this.courseWare.url = courseUrl
+      this.videoUrl = video || '无视频'
       const url = this.$comm.url(video)
       if (
         url.substring(url.length - 3, url.length) === 'ppt' ||
@@ -709,6 +715,16 @@ export default {
       background-color: #111;
       border-radius: 20px;
       margin-top: 10px;
+      .no-video-message {
+        color: #fff;
+        font-size: 24px;
+        text-align: center;
+        line-height: 588px;
+        background-color: #333;
+        border-radius: 15px;
+        height: 100%;
+        width: 100%;
+      }
     }
     .detail-tab {
       display: inline-block;
