@@ -59,11 +59,11 @@ module.exports = {
         }
       },
       plugins: [
-        new CompressionPlugin({
-          test: /\.js$|\.html$|.\css/,
-          threshold: 10240,
-          deleteOriginalAssets: false
-        })
+        // new CompressionPlugin({
+        //   test: /\.js$|\.html$|.\css/,
+        //   threshold: 10240,
+        //   deleteOriginalAssets: false
+        // })
       ]
     }
   },
