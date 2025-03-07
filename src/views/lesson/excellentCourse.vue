@@ -13,7 +13,7 @@
             </el-radio-group>
           </div>
         </div> -->
-        <!-- 隐藏年级部分 
+        <!-- 隐藏年级部分
         <div class="two">
           <div class="name_2">
             年
@@ -27,7 +27,7 @@
           </div>
         </div>
         -->
-        <!-- 隐藏版块部分 
+        <!-- 隐藏版块部分
         <div class="three">
           <div class="name_2">版<span class="zhanwei">块</span></div>
           <div>
@@ -47,7 +47,7 @@
         </div>
       </div>
     </div>
-    <div class="box_1" style="margin-top: 40px;">
+    <div class="box_1">
       <!-- <div v-for="item in lessonList" :key="item.id" class="box_1-item">
         <div class="box_1-item-img">
           <el-image
@@ -66,7 +66,7 @@
           </div>
         </div>
       </div> -->
-        <div  class="flex justify-center space-around" v-if="!showType">
+        <div  class="flex justify-center space-around" v-if="!showType" style="margin-top: 40px;">
           <div class="model_box_01" v-for="item in classModelList" :key="item.id" @click="changeType(item)">
             <el-image
               class="model_img"
@@ -75,9 +75,7 @@
             <div class="title">{{ item.name }}</div>
           </div>
         </div>
-      <div>
-
-      </div>
+      <div @click="recover" v-if="showType" class="back_class_box"> <i class="el-icon-arrow-left"></i>返回</div>
       <InsideList  ref="InsideList" :params="params"  v-if="showType==='list'" :type="listType" @changeShowType="changeShowType"  />
       <LessDetail v-else-if="showType==='detail'" :id="detailId"  ref="LessDetail" @changeShowType="changeShowType" />
 <!--      <el-row :gutter="66">-->
@@ -214,6 +212,10 @@ export default {
   },
   methods: {
     parseTime,
+    recover() {
+      const map = { list: '', detail: 'list' };
+      this.showType = map[this.showType] ?? this.showType;
+    },
     changeRadioClass() {
       this.showType = ''
       this.listType = ''
@@ -326,6 +328,22 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+.back_class_box{
+  display: inline-block;
+  margin-left: 32px;
+  cursor: pointer;
+  background: #03529d;
+  color: #fff;
+  margin-top: 20px;
+  width: 80px;
+  line-height: 30px;
+  height: 30px;
+  border-radius: 5px;
+  text-align: center;
+  i{
+    margin-right: 2px;
+  }
+}
 .lesson-main {
   width: 1366px;
   margin: 0 auto;
